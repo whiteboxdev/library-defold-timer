@@ -6,7 +6,7 @@ local node_timer_3 = hash("node_timer_3")
 
 function init(self)
 	msg.post(msg.url(), hash("acquire_input_focus"))
-	dtimer.add_node(node_timer_1, nil, { delay = 3, volatile = false, callback = function() print("Timer 1 Callback") end })
+	dtimer.add_node(node_timer_1)
 	dtimer.start(node_timer_1)
 	dtimer.add_node(node_timer_2, { hours = true, minutes = true, seconds = true, centiseconds = true })
 	dtimer.start(node_timer_2)

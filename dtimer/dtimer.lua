@@ -93,7 +93,7 @@ end
 
 function dtimer.add_node(node_id, format, callback_data)
 	if not nodes[node_id] then
-		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = 0, format = format or { minutes = true, seconds = true }, callback_data = callback_data }
+		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = 0, format = format or { minutes = true, seconds = true } }
 	end
 end
 
@@ -109,12 +109,6 @@ end
 function dtimer.set_format(node_id, format)
 	if nodes[node_id] then
 		nodes[node_id].format = format
-	end
-end
-
-function dtimer.set_callback_data(node_id, callback_data)
-	if nodes[node_id] then
-		nodes[node_id].callback_data = callback_data
 	end
 end
 
