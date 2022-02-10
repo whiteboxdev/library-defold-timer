@@ -44,14 +44,14 @@ function update(self, dt)
 end
 
 function on_message(self, message_id, message, sender)
-	  if message_id == dtimer.messages.start then
+    if message_id == dtimer.messages.start then
         -- If timer starts, turn node green.
-		    gui.set_color(gui.get_node(message.node_id), vmath.vector4(0, 1, 0, 1))
-	  elseif message_id == dtimer.messages.stop then
+        gui.set_color(gui.get_node(message.node_id), vmath.vector4(0, 1, 0, 1))
+    elseif message_id == dtimer.messages.stop then
         -- If timer stops and limit is reached, turn node red.
         -- If timer stops and limit is not reached or no limit exists, turn node yellow.
-		    gui.set_color(gui.get_node(message.node_id), message.complete and vmath.vector4(1, 0, 0, 1) or vmath.vector4(1, 1, 0, 1))
-	  end
+        gui.set_color(gui.get_node(message.node_id), message.complete and vmath.vector4(1, 0, 0, 1) or vmath.vector4(1, 1, 0, 1))
+    end
 end
 ```
 
