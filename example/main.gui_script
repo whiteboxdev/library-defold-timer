@@ -1,0 +1,33 @@
+local dtimer = require "dtimer.dtimer"
+
+local node_timer_1 = hash("node_timer_1")
+local node_timer_2 = hash("node_timer_2")
+local node_timer_3 = hash("node_timer_3")
+
+function init(self)
+	msg.post(msg.url(), hash("acquire_input_focus"))
+	dtimer.add_node(node_timer_1)
+	dtimer.start(node_timer_1)
+	dtimer.add_node(node_timer_2)
+	dtimer.start(node_timer_2)
+	dtimer.add_node(node_timer_3)
+	dtimer.start(node_timer_3)
+end
+
+function update(self, dt)
+	dtimer.update(dt)
+end
+
+function on_input(self, action_id, action)
+	if action.pressed then
+		if action_id == hash("key_1") then
+			print("Timer 1 Elapsed: " .. dtimer.toggle(node_timer_1))
+			gui.set_color(gui.get_node(node_timer_1), dtimer.is_enabled(node_timer_1) and vmath.vector4(0, 1, 0, 1) or vmath.vector4(1, 0, 0, 1))
+		elseif action_id == hash("key_2") then
+			print("Timer 2 Elapsed: " .. dtimer.toggle(node_timer_2, true))
+			gui.set_color(gui.get_node(node_timer_2), dtimer.is_enabled(node_timer_2) and vmath.vector4(0, 1, 0, 1) or vmath.vector4(1, 0, 0, 1))
+		elseif action_id == hash("key_3") then
+			print("Timer 3 Elapsed: " .. dtimer.start(node_timer_3, true))
+		end
+	end
+end

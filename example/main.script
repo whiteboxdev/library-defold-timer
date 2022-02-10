@@ -1,5 +1,3 @@
-local library = require "library.library"
-
 function init(self)
 	msg.post(msg.url(), hash("acquire_input_focus"))
 end
