@@ -10,7 +10,7 @@ Please click the "Star" button on GitHub if you find this asset to be useful!
 
 ## Installation
 To install dtimer into your project, add one of the following links to your `game.project` dependencies:
-  - https://github.com/klaytonkowalski/defold-timer/archive/master.zip
+  - https://github.com/klaytonkowalski/defold-timer/archive/main.zip
   - URL of a [specific release](https://github.com/klaytonkowalski/defold-timer/releases)
 
 ## Configuration
@@ -26,7 +26,33 @@ Timers used in `dtimer` hold four components: hours, minutes, seconds, and centi
 See the following code for a basic usage scenario:
 
 ```
+local dtimer = require "dtimer.dtimer"
 
+-- Hash of gui node id.
+local node_timer = hash("node_timer")
+
+function init(self)
+    msg.url(msg.url(), hash("acquire_input_focus"))
+    dtimer.set_url(msg.url())
+    -- Count up to 1 hour and display all timestamp components.
+    dtimer.add_node(node_timer, true, { hours = true, minutes = true, seconds = true, centiseconds = true }, 3600)
+    dtimer.start(node_timer)
+end
+
+function update(self, dt)
+    dtimer.update(dt)
+end
+
+function on_message(self, message_id, message, sender)
+	  if message_id == dtimer.messages.start then
+        -- If timer starts, turn node green.
+		    gui.set_color(gui.get_node(message.node_id), vmath.vector4(0, 1, 0, 1))
+	  elseif message_id == dtimer.messages.stop then
+        -- If timer stops and limit is reached, turn node red.
+        -- If timer stops and limit is not reached or no limit exists, turn node yellow.
+		    gui.set_color(gui.get_node(message.node_id), message.complete and vmath.vector4(1, 0, 0, 1) or vmath.vector4(1, 1, 0, 1))
+	  end
+end
 ```
 
 ## API: Properties
@@ -138,10 +164,10 @@ Updates all timers and displays. Should be called in the `update(self, dt)` func
 
 ### dtimer.set_url(url)
 
-Sets the URL of the gui script to receive `dtimer` messages.
+Sets the url of the gui script to receive `dtimer` messages.
 
 #### Parameters
-1. `url`: URL of the gui script to receive `dtimer` messages.
+1. `url`: Url of the gui script to receive `dtimer` messages.
 
 ---
 
