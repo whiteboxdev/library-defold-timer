@@ -1,12 +1,12 @@
 # Defold Timer
 Defold Timer (dtimer) provides a visual timer widget in a Defold game engine project.
 
-An [example project](https://github.com/klaytonkowalski/defold-timer/tree/master/example) is available if you need additional help with configuration.  
-Visit my [Giphy](https://media.giphy.com/media/YFnSgIm0DdVJmTmN3N/giphy.gif) to see an animated gif of the example project.
+An [example project](https://github.com/klaytonkowalski/defold-timer/tree/main/example) is available if you need additional help with configuration.  
+Visit my [Giphy](https://media.giphy.com/media/4tCpsy4ne4mBv7aYHF/giphy.gif) to see an animated gif of the example project.
 
 Please click the "Star" button on GitHub if you find this asset to be useful!
 
-![alt text](https://github.com/klaytonkowalski/defold-timer/blob/master/assets/thumbnail.png?raw=true)
+![alt text](https://github.com/klaytonkowalski/defold-timer/blob/main/assets/thumbnail.png?raw=true)
 
 ## Installation
 To install dtimer into your project, add one of the following links to your `game.project` dependencies:
@@ -23,21 +23,55 @@ This library only handles timer logic and setting the text of a gui node with `g
 
 Timers used in `dtimer` hold four components: hours, minutes, seconds, and centiseconds. The user can specify which of these components to display in their gui nodes. Leading zeros are displayed appropriately.
 
-See the following code for a basic scenario of starting a timer, stopping it after some amount of seconds, then printing its full timestamp:
+See the following code for a basic usage scenario:
 
 ```
 
 ```
 
-## API
+## API: Properties
 
-### dtimer.add_node(node_id, format)
+### dtimer.messages
 
-Adds a gui node to the timer system.
+Table of hashes which are sent to the `on_message()` function of the corresponding gui script:
+
+```
+dtimer.messages
+{
+    start = hash("dtimer_start"),
+    stop = hash("dtimer_stop")
+}
+```
+
+`start`: Sent when a timer starts. The `message` table contains the following:
+
+```
+{
+    node_id = <hash>,
+    elapsed = <number> -- Starting value of the timer in seconds.
+}
+```
+
+`stop`: Sent when a timer stops. The `message` table contains the following:
+
+```
+{
+    node_id = <hash>,
+    elapsed = <number>, -- Stopping value of the timer in seconds.
+    complete = <bool> -- If the timer reached its `duration` limit.
+}
+```
+
+## API: Functions
+
+### dtimer.add_node(node_id, increasing, [format], [duration])
+
+Adds a gui node to the timer system. Timers begin in the stopped state.
 
 #### Parameters
 1. `node_id`: Hashed id of a gui node.
-2. `format`: Table that specifies which timestamp components to display:
+2. `increasing`: `bool` if timer should count up or down.
+3. `[format]`: Table that specifies which timestamp components to display:
 
 ```
 {
@@ -50,6 +84,8 @@ Adds a gui node to the timer system.
 
 If `format` is `nil`, then the above default will be used.
 
+4. `[duration]`: Maximum elapsed seconds counting up from zero or start time counting down to zero. This argument is required if `increasing` is `false`.
+
 ---
 
 ### dtimer.remove_node(node_id)
@@ -59,9 +95,53 @@ Removes a node from the timer system.
 #### Parameters
 1. `node_id`: Hashed id of a gui node.
 
-#### Returns
+---
 
-Returns the elapsed time in seconds.
+### dtimer.start(node_id, [reset])
+
+Starts the timer attached to a node. If the timer is already started and `reset` is `true`, then its elapsed time will reset and continue counting without stopping.
+
+#### Parameters
+1. `node_id`: Hashed id of a gui node.
+2. `[reset]`: `bool` if the timer should reset to zero.
+
+---
+
+### dtimer.stop(node_id, [reset])
+
+Stops the timer attached to a node.
+
+#### Parameters
+1. `node_id`: Hashed id of a gui node.
+2. `[reset]`: `bool` if the timer should reset to zero.
+
+---
+
+### dtimer.toggle(node_id, [reset])
+
+Toggles the timer attached to a node.
+
+#### Parameters
+1. `node_id`: Hashed id of a gui node.
+2. `[reset]`: `bool` if the timer should reset to zero.
+
+---
+
+### dtimer.update(dt)
+
+Updates all timers and displays. Should be called in the `update(self, dt)` function of your gui script.
+
+#### Parameters
+1. `dt`: Time elapsed since last frame.
+
+---
+
+### dtimer.set_url(url)
+
+Sets the URL of the gui script to receive `dtimer` messages.
+
+#### Parameters
+1. `url`: URL of the gui script to receive `dtimer` messages.
 
 ---
 
@@ -81,6 +161,17 @@ Sets the format of a node.
     centiseconds = false
 }
 ```
+
+---
+
+### dtimer.set_direction(node_id, increasing, [duration])
+
+Sets the timer direction of a node.
+
+#### Parameters
+1. `node_id`: Hashed id of a gui node.
+2. `increasing`: `bool` if timer should count up or down.
+3. `[duration]`: Maximum elapsed seconds counting up from zero or start time counting down to zero. This argument is required if `increasing` is `false`.
 
 ---
 
@@ -127,54 +218,3 @@ Checks if the timer attached to a node is running.
 #### Returns
 
 Returns `true` or `false`.
-
----
-
-### dtimer.start(node_id, reset)
-
-Starts the timer attached to a node.
-
-#### Parameters
-1. `node_id`: Hashed id of a gui node.
-2. `reset`: `bool` if the timer should reset to zero.
-
-#### Returns
-
-Returns the elapsed time.
-
----
-
-### dtimer.stop(node_id, reset)
-
-Stops the timer attached to a node.
-
-#### Parameters
-1. `node_id`: Hashed id of a gui node.
-2. `reset`: `bool` if the timer should reset to zero.
-
-#### Returns
-
-Returns the elapsed time.
-
----
-
-### dtimer.toggle(node_id, reset)
-
-Toggles the timer attached to a node.
-
-#### Parameters
-1. `node_id`: Hashed id of a gui node.
-2. `reset`: `bool` if the timer should reset to zero.
-
-#### Returns
-
-Returns the elapsed time.
-
----
-
-### dtimer.update(dt)
-
-Updates all timers and displays. Should be called in the `update(self, dt)` function of your gui script.
-
-#### Parameters
-1. `dt`: Time elapsed since last frame.

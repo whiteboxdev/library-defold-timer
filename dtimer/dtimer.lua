@@ -32,7 +32,15 @@
 
 local dtimer = {}
 
+dtimer.messages =
+{
+	start = hash("dtimer_start"),
+	stop = hash("dtimer_stop")
+}
+
 local nodes = {}
+
+local on_message_url
 
 local hour_scalar = 1 / 60 / 60
 local minute_scalar = 1 / 60
@@ -91,24 +99,100 @@ end
 -- MODULE FUNCTIONS
 ----------------------------------------------------------------------
 
-function dtimer.add_node(node_id, format, callback_data)
+function dtimer.add_node(node_id, increasing, format, duration)
 	if not nodes[node_id] then
-		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = 0, format = format or { minutes = true, seconds = true } }
+		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = not increasing and duration or 0, increasing = increasing, format = format or { minutes = true, seconds = true }, duration = duration }
 	end
 end
 
 function dtimer.remove_node(node_id)
-	local elapsed
 	if nodes[node_id] then
-		elapsed = nodes[node_id].elapsed
 		nodes[node_id] = nil
 	end
-	return elapsed
+end
+
+function dtimer.start(node_id, reset)
+	if nodes[node_id] then
+		nodes[node_id].enabled = true
+		if reset then
+			if nodes[node_id].increasing then
+				nodes[node_id].elapsed = 0
+			else
+				nodes[node_id].elapsed = nodes[node_id].duration
+			end
+		end
+		if on_message_url then
+			msg.post(on_message_url, dtimer.messages.start, { node_id = node_id, elapsed = nodes[node_id].elapsed })
+		end
+	end
+end
+
+function dtimer.stop(node_id, reset)
+	if nodes[node_id] then
+		nodes[node_id].enabled = false
+		if on_message_url then
+			msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = nodes[node_id].elapsed, complete = nodes[node_id].elapsed == (nodes[node_id].increasing and nodes[node_id].duration or 0) })
+		end
+		if reset then
+			if nodes[node_id].increasing then
+				nodes[node_id].elapsed = 0
+			else
+				nodes[node_id].elapsed = nodes[node_id].duration
+			end
+		end
+	end
+end
+
+function dtimer.toggle(node_id, reset)
+	if nodes[node_id] then
+		if nodes[node_id].enabled then
+			return dtimer.stop(node_id, reset)
+		end
+		return dtimer.start(node_id, reset)
+	end
+end
+
+function dtimer.update(dt)
+	for node_id, data in pairs(nodes) do
+		if data.enabled then
+			if data.increasing then
+				data.elapsed = data.elapsed + dt
+				if data.duration and data.duration < data.elapsed then
+					data.elapsed = data.duration
+					data.enabled = false
+					if on_message_url then
+						msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = data.elapsed, complete = true })
+					end
+				end
+			else
+				data.elapsed = data.elapsed - dt
+				if data.elapsed < 0 then
+					data.elapsed = 0
+					data.enabled = false
+					if on_message_url then
+						msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = data.elapsed, complete = true })
+					end
+				end
+			end
+		end
+		draw(data)
+	end
+end
+
+function dtimer.set_url(url)
+	on_message_url = url
 end
 
 function dtimer.set_format(node_id, format)
 	if nodes[node_id] then
 		nodes[node_id].format = format
+	end
+end
+
+function dtimer.set_direction(node_id, increasing, duration)
+	if nodes[node_id] then
+		nodes[node_id].increasing = increasing
+		nodes[node_id].duration = duration
 	end
 end
 
@@ -127,48 +211,6 @@ end
 function dtimer.is_enabled(node_id)
 	if nodes[node_id] then
 		return nodes[node_id].enabled
-	end
-end
-
-function dtimer.start(node_id, reset)
-	local elapsed
-	if nodes[node_id] then
-		nodes[node_id].enabled = true
-		elapsed = nodes[node_id].elapsed
-		if reset then
-			nodes[node_id].elapsed = 0
-		end
-	end
-	return elapsed
-end
-
-function dtimer.stop(node_id, reset)
-	local elapsed
-	if nodes[node_id] then
-		nodes[node_id].enabled = false
-		elapsed = nodes[node_id].elapsed
-		if reset then
-			nodes[node_id].elapsed = 0
-		end
-	end
-	return elapsed
-end
-
-function dtimer.toggle(node_id, reset)
-	if nodes[node_id] then
-		if nodes[node_id].enabled then
-			return dtimer.stop(node_id, reset)
-		end
-		return dtimer.start(node_id, reset)
-	end
-end
-
-function dtimer.update(dt)
-	for _, data in pairs(nodes) do
-		if data.enabled then
-			data.elapsed = data.elapsed + dt
-		end
-		draw(data)
 	end
 end
 

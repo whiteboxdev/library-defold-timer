@@ -6,11 +6,12 @@ local node_timer_3 = hash("node_timer_3")
 
 function init(self)
 	msg.post(msg.url(), hash("acquire_input_focus"))
-	dtimer.add_node(node_timer_1)
+	dtimer.set_url(msg.url())
+	dtimer.add_node(node_timer_1, true, nil, 20)
 	dtimer.start(node_timer_1)
-	dtimer.add_node(node_timer_2, { hours = true, minutes = true, seconds = true, centiseconds = true })
+	dtimer.add_node(node_timer_2, false, { hours = true, minutes = true, seconds = true, centiseconds = true }, 3610)
 	dtimer.start(node_timer_2)
-	dtimer.add_node(node_timer_3, { seconds = true, centiseconds = true })
+	dtimer.add_node(node_timer_3, true, { seconds = true, centiseconds = true })
 	dtimer.start(node_timer_3)
 end
 
@@ -21,13 +22,19 @@ end
 function on_input(self, action_id, action)
 	if action.pressed then
 		if action_id == hash("key_1") then
-			print("Timer 1 Elapsed: " .. dtimer.toggle(node_timer_1))
-			gui.set_color(gui.get_node(node_timer_1), dtimer.is_enabled(node_timer_1) and vmath.vector4(0, 1, 0, 1) or vmath.vector4(1, 0, 0, 1))
+			dtimer.toggle(node_timer_1)
 		elseif action_id == hash("key_2") then
-			print("Timer 2 Elapsed: " .. dtimer.toggle(node_timer_2, true))
-			gui.set_color(gui.get_node(node_timer_2), dtimer.is_enabled(node_timer_2) and vmath.vector4(0, 1, 0, 1) or vmath.vector4(1, 0, 0, 1))
+			dtimer.toggle(node_timer_2, true)
 		elseif action_id == hash("key_3") then
-			print("Timer 3 Elapsed: " .. dtimer.start(node_timer_3, true))
+			dtimer.start(node_timer_3, true)
 		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == dtimer.messages.start then
+		gui.set_color(gui.get_node(message.node_id), vmath.vector4(0, 1, 0, 1))
+	elseif message_id == dtimer.messages.stop then
+		gui.set_color(gui.get_node(message.node_id), message.complete and vmath.vector4(1, 0, 0, 1) or vmath.vector4(1, 1, 0, 1))
 	end
 end
