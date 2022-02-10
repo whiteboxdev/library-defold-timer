@@ -38,23 +38,62 @@ local hour_scalar = 1 / 60 / 60
 local minute_scalar = 1 / 60
 
 ----------------------------------------------------------------------
--- FUNCTIONS
+-- LOCAL FUNCTIONS
 ----------------------------------------------------------------------
 
+local function get_timestamp(elapsed)
+	return
+	{
+		hours = math.floor(elapsed * hour_scalar),
+		minutes = math.floor(elapsed * minute_scalar % 60),
+		seconds = math.floor(elapsed % 60),
+		centiseconds = math.floor(elapsed * 100 % 100)
+	}
+end
+
 local function draw(data)
-	local text = data.format
-	local hours = math.floor(data.elapsed * hour_scalar)
-	local minutes = math.floor(data.elapsed * minute_scalar % 60)
-	local seconds = math.floor(data.elapsed % 60)
-	local centiseconds = math.floor(data.elapsed * 100 % 100)
-	-- todo
-	text = hours .. ":" .. (minutes < 10 and "0" or "") .. minutes .. ":" .. (seconds < 10 and "0" or "") .. seconds .. "." .. (centiseconds < 10 and "0" or "") .. centiseconds
+	local timestamp = get_timestamp(data.elapsed)
+	local text = ""
+	if data.format.hours then
+		text = text .. timestamp.hours
+	end
+	if data.format.minutes then
+		if data.format.hours then
+			text = text .. ":"
+			if timestamp.minutes < 10 then
+				text = text .. "0"
+			end
+		end
+		text = text .. timestamp.minutes
+	end
+	if data.format.seconds then
+		if (data.format.hours or data.format.minutes) then
+			text = text .. ":"
+			if timestamp.seconds < 10 then
+				text = text .. "0"
+			end
+		end
+		text = text .. timestamp.seconds
+	end
+	if data.format.centiseconds then
+		if (data.format.hours or data.format.minutes or data.format.seconds) then
+			text = text .. ":"
+			if timestamp.centiseconds < 10 then
+				text = text .. "0"
+			end
+		end
+		text = text .. timestamp.centiseconds
+	end
 	gui.set_text(data.node, text)
 end
 
+----------------------------------------------------------------------
+-- MODULE FUNCTIONS
+----------------------------------------------------------------------
+
 function dtimer.add_node(node_id, format)
 	if not nodes[node_id] then
-		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = 0 }
+		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = 0, format = format or { minutes = true, seconds = true } }
 	end
 end
 
@@ -67,9 +106,21 @@ function dtimer.remove_node(node_id)
 	return elapsed
 end
 
+function dtimer.set_format(node_id, format)
+	if nodes[node_id] then
+		nodes[node_id].format = format
+	end
+end
+
 function dtimer.get_elapsed(node_id)
 	if nodes[node_id] then
 		return nodes[node_id].elapsed
+	end
+end
+
+function dtimer.get_timestamp(node_id)
+	if nodes[node_id] then
+		return get_timestamp(nodes[node_id].elapsed)
 	end
 end
 
