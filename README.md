@@ -1,5 +1,5 @@
 # Defold Timer
-Defold Timer (dtimer) provides a visual timer widget in a Defold game engine project.
+Defold Timer provides a visual timer widget in a Defold game engine project.
 
 An [example project](https://github.com/klaytonkowalski/defold-timer/tree/main/example) is available if you need additional help with configuration.  
 Visit my [Giphy](https://media.giphy.com/media/4tCpsy4ne4mBv7aYHF/giphy.gif) to see an animated gif of the example project.
