@@ -189,6 +189,10 @@ function dtimer.set_format(node_id, format)
 	end
 end
 
+function dtimer.set_timestamp(node_id, format, seconds)
+	draw({ node = gui.get_node(node_id), format = format, elapsed = seconds })
+end
+
 function dtimer.set_direction(node_id, increasing, duration)
 	if nodes[node_id] then
 		nodes[node_id].increasing = increasing

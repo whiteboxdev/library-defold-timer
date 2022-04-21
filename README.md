@@ -190,6 +190,27 @@ Sets the format of a node.
 
 ---
 
+### dtimer.set_timestamp(node_id, format, seconds)
+
+Applies a timestamp to a node that is not registered with `dtimer`. This is useful when a node should not be tracked by `dtimer.add_node()`, but should display a formatted timestamp.
+
+#### Parameters
+1. `node_id`: Hashed id of a gui node.
+2. `format`: Table that specifies which timestamp components to display:
+
+```
+{
+    hours = false,
+    minutes = true,
+    seconds = true,
+    centiseconds = false
+}
+```
+
+3. `seconds`: Seconds to format into a timestamp.
+
+---
+
 ### dtimer.set_direction(node_id, increasing, [duration])
 
 Sets the timer direction of a node.
