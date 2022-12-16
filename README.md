@@ -4,7 +4,7 @@ Defold Timer provides a visual timer widget in a Defold game engine project.
 An [example project](https://github.com/klaytonkowalski/library-defold-timer/tree/main/example) is available if you need additional help with configuration.  
 Visit my [Giphy](https://media.giphy.com/media/4tCpsy4ne4mBv7aYHF/giphy.gif) to see an animated gif of the example project.
 
-Please click the "Star" button on GitHub if you find this asset to be useful!
+Please click the ☆ button on GitHub if this repository is useful or interesting. Thank you!
 
 ![alt text](https://github.com/klaytonkowalski/library-defold-timer/blob/main/assets/thumbnail.png?raw=true)
 
