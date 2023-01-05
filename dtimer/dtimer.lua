@@ -59,40 +59,58 @@ local function get_timestamp(elapsed)
 	}
 end
 
-local function draw(data)
-	local timestamp = get_timestamp(data.elapsed)
+local function get_timestamp_components(elapsed)
+	return math.floor(elapsed * hour_scalar), math.floor(elapsed * minute_scalar % 60), math.floor(elapsed % 60), math.floor(elapsed * 100 % 100)
+end
+
+local function draw(node)
 	local text = ""
-	if data.format.hours then
-		text = text .. timestamp.hours
+	local hours, minutes, seconds, centiseconds = get_timestamp_components(node.elapsed)
+	if node.format.hours then
+		text = text .. hours
+	else
+		minutes = minutes + hours * 60
 	end
-	if data.format.minutes then
-		if data.format.hours then
+	if node.format.minutes then
+		if #text > 0 then
 			text = text .. ":"
-			if timestamp.minutes < 10 then
+			if minutes < 10 then
 				text = text .. "0"
 			end
 		end
-		text = text .. timestamp.minutes
+		text = text .. minutes
+	else
+		seconds = seconds + minutes * 60
 	end
-	if data.format.seconds then
-		if (data.format.hours or data.format.minutes) then
+	if node.format.seconds then
+		if #text > 0 then
 			text = text .. ":"
-			if timestamp.seconds < 10 then
+			if seconds < 10 then
 				text = text .. "0"
 			end
 		end
-		text = text .. timestamp.seconds
+		text = text .. seconds
+	else
+		centiseconds = centiseconds + seconds * 60
 	end
-	if data.format.centiseconds then
-		if (data.format.hours or data.format.minutes or data.format.seconds) then
+	if node.format.centiseconds then
+		if #text > 0 then
 			text = text .. ":"
-			if timestamp.centiseconds < 10 then
+			if centiseconds < 10 then
 				text = text .. "0"
 			end
 		end
-		text = text .. timestamp.centiseconds
+		text = text .. centiseconds
 	end
-	gui.set_text(data.node, text)
+	gui.set_text(node.node, text)
+end
+
+local function reset_node(node)
+	if node.increasing then
+		node.elapsed = 0
+	else
+		node.elapsed = node.duration
+	end
 end
 
 ----------------------------------------------------------------------
@@ -101,44 +119,40 @@ end
 
 function dtimer.add_node(node_id, increasing, format, duration)
 	if not nodes[node_id] then
-		nodes[node_id] = { node = gui.get_node(node_id), enabled = false, elapsed = not increasing and duration or 0, increasing = increasing, format = format or { minutes = true, seconds = true }, duration = duration }
+		nodes[node_id] =
+		{
+			node = gui.get_node(node_id),
+			enabled = false,
+			elapsed = not increasing and duration or 0,
+			increasing = increasing,
+			format = format or { minutes = true, seconds = true },
+			duration = duration
+		}
 	end
 end
 
 function dtimer.remove_node(node_id)
-	if nodes[node_id] then
-		nodes[node_id] = nil
-	end
+	nodes[node_id] = nil
 end
 
 function dtimer.start(node_id, reset)
-	if nodes[node_id] then
-		nodes[node_id].enabled = true
+	local node = nodes[node_id]
+	if node then
+		node.enabled = true
 		if reset then
-			if nodes[node_id].increasing then
-				nodes[node_id].elapsed = 0
-			else
-				nodes[node_id].elapsed = nodes[node_id].duration
-			end
+			reset_node(node)
 		end
-		if on_message_url then
-			msg.post(on_message_url, dtimer.messages.start, { node_id = node_id, elapsed = nodes[node_id].elapsed })
-		end
+		msg.post(on_message_url, dtimer.messages.start, { node_id = node_id, elapsed = node.elapsed })
 	end
 end
 
 function dtimer.stop(node_id, reset)
-	if nodes[node_id] then
-		nodes[node_id].enabled = false
-		if on_message_url then
-			msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = nodes[node_id].elapsed, complete = nodes[node_id].elapsed == (nodes[node_id].increasing and nodes[node_id].duration or 0) })
-		end
+	local node = nodes[node_id]
+	if node then
+		node.enabled = false
+		msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = node.elapsed, complete = node.elapsed == (node.increasing and node.duration or 0) })
 		if reset then
-			if nodes[node_id].increasing then
-				nodes[node_id].elapsed = 0
-			else
-				nodes[node_id].elapsed = nodes[node_id].duration
-			end
+			reset_node(node)
 		end
 	end
 end
@@ -153,29 +167,25 @@ function dtimer.toggle(node_id, reset)
 end
 
 function dtimer.update(dt)
-	for node_id, data in pairs(nodes) do
-		if data.enabled then
-			if data.increasing then
-				data.elapsed = data.elapsed + dt
-				if data.duration and data.duration < data.elapsed then
-					data.elapsed = data.duration
-					data.enabled = false
-					if on_message_url then
-						msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = data.elapsed, complete = true })
-					end
+	for node_id, node in pairs(nodes) do
+		if node.enabled then
+			if node.increasing then
+				node.elapsed = node.elapsed + dt
+				if node.duration and node.duration < node.elapsed then
+					node.elapsed = node.duration
+					node.enabled = false
+					msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = node.elapsed, complete = true })
 				end
 			else
-				data.elapsed = data.elapsed - dt
-				if data.elapsed < 0 then
-					data.elapsed = 0
-					data.enabled = false
-					if on_message_url then
-						msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = data.elapsed, complete = true })
-					end
+				node.elapsed = node.elapsed - dt
+				if node.elapsed < 0 then
+					node.elapsed = 0
+					node.enabled = false
+					msg.post(on_message_url, dtimer.messages.stop, { node_id = node_id, elapsed = node.elapsed, complete = true })
 				end
 			end
 		end
-		draw(data)
+		draw(node)
 	end
 end
 
@@ -191,13 +201,6 @@ end
 
 function dtimer.set_timestamp(node_id, format, seconds)
 	draw({ node = gui.get_node(node_id), format = format, elapsed = seconds })
-end
-
-function dtimer.set_direction(node_id, increasing, duration)
-	if nodes[node_id] then
-		nodes[node_id].increasing = increasing
-		nodes[node_id].duration = duration
-	end
 end
 
 function dtimer.get_elapsed(node_id)
