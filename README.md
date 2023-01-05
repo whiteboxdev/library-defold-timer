@@ -211,17 +211,6 @@ Applies a timestamp to a node that is not registered with `dtimer`. This is usef
 
 ---
 
-### dtimer.set_direction(node_id, increasing, [duration])
-
-Sets the timer direction of a node.
-
-#### Parameters
-1. `node_id`: Hashed id of a gui node.
-2. `increasing`: `bool` if timer should count up or down.
-3. `[duration]`: Maximum elapsed seconds counting up from zero or start time counting down to zero. This argument is required if `increasing` is `false`.
-
----
-
 ### dtimer.get_elapsed(node_id)
 
 Gets the elapsed time of a node in seconds.
