@@ -95,7 +95,7 @@ local function draw(node)
 	end
 	if node.format.centiseconds then
 		if #text > 0 then
-			text = text .. ":"
+			text = text .. "."
 			if centiseconds < 10 then
 				text = text .. "0"
 			end
