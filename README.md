@@ -4,14 +4,12 @@ Defold Timer provides a visual timer widget in a Defold game engine project.
 
 Please click the ☆ button on GitHub if this repository is useful or interesting. Thank you!
 
-![alt text](https://github.com/klaytonkowalski/library-defold-timer/blob/main/assets/thumbnail.png?raw=true)
-
-![alt text](https://github.com/klaytonkowalski/library-defold-timer/blob/main/assets/example.gif?raw=true)
+![alt text](https://github.com/whiteboxdev/library-defold-timer/blob/main/assets/thumbnail.png?raw=true)
 
 ## Installation
 
 Add the latest version to your project's dependencies:  
-https://github.com/klaytonkowalski/library-defold-timer/archive/main.zip
+https://github.com/whiteboxdev/library-defold-timer/archive/main.zip
 
 ## Configuration
 
